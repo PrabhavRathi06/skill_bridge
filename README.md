@@ -9,6 +9,43 @@ Built as the House of Edtech Fullstack Developer Assignment (Sep 2026).
 - **Live Demo:** [https://skill-bridge-puce-seven.vercel.app](https://skill-bridge-puce-seven.vercel.app)
 - **GitHub Repository:** [https://github.com/PrabhavRathi06/skill_bridge](https://github.com/PrabhavRathi06/skill_bridge)
 
+### Demo Accounts
+You can log in to the live demo using any of these seeded accounts (Password for all: `Demo@1234`):
+- `prabhav@demo.com` (Good for testing Requester flow)
+- `ananya@demo.com` (Good for testing Provider flow)
+- `rahul@demo.com`
+
+---
+
+## Screenshots
+
+<details>
+<summary>Click to view Application Screenshots</summary>
+
+### 1. Home & Landing Page
+![Landing Hero](./screenshots/landing-hero.png)
+![Landing Features](./screenshots/landing-features.png)
+
+### 2. User Authentication & Dashboard
+![Login Page](./screenshots/login.png)
+![Dashboard](./screenshots/dashboard.png)
+![User Menu](./screenshots/user-menu.png)
+
+### 2. Marketplace & Requests
+![Marketplace](./screenshots/marketplace.png)
+![Request Details](./screenshots/request-details.png)
+
+### 3. AI Request Assistant
+![AI Request Form](./screenshots/ai-request-form.png)
+![AI Request Filled](./screenshots/ai-request-filled.png)
+![Dashboard Updated](./screenshots/dashboard-updated.png)
+
+### 4. Offers & Acceptance Flow
+![Offer Received](./screenshots/offer-received.png)
+![Offer Accepted](./screenshots/offer-accepted.png)
+
+</details>
+
 ---
 
 ## Problem
