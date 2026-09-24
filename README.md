@@ -41,6 +41,9 @@ You can log in to the live demo using any of these seeded accounts (Password for
 ![Offer Received](./screenshots/offer-received.png)
 ![Offer Accepted](./screenshots/offer-accepted.png)
 
+### 6. Database (MongoDB Atlas)
+![MongoDB Atlas Data Explorer](./screenshots/mongodb-atlas.png)
+
 ---
 
 ## Problem
