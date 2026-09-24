@@ -5,6 +5,9 @@ import { z } from 'zod'
 import { groq, AI_MODEL } from './provider'
 import type { AIExtractedRequest } from '@/types'
 
+// We use Zod here to forcefully structure the AI's output. By passing this schema 
+// into Vercel AI SDK's generateObject, we ensure the LLM strictly adheres to the types
+// we need, saving us from writing tedious parsing and fallback logic.
 const extractedRequestSchema = z.object({
   title: z.string().min(5).max(100).describe('Short, clear title for the service request'),
   category: z
@@ -41,11 +44,15 @@ const extractedRequestSchema = z.object({
 export async function extractRequestFromText(
   userInput: string
 ): Promise<{ success: true; data: AIExtractedRequest } | { success: false; error: string }> {
+  // Quick sanity check to save LLM tokens (and money) if the user accidentally submits garbage or empty text.
   if (!userInput || userInput.trim().length < 5) {
     return { success: false, error: 'Input too short to extract meaningful information.' }
   }
 
   try {
+    // We use Groq as our provider because it's optimized for incredibly low latency (LPU architecture).
+    // This is critical for UX, as the user is waiting synchronously for this extraction to finish
+    // before they can preview their service request.
     const { object } = await generateObject({
       model: groq(AI_MODEL),
       schema: extractedRequestSchema,

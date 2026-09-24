@@ -4,6 +4,11 @@ A production-quality full-stack service marketplace that connects people who nee
 
 Built as the House of Edtech Fullstack Developer Assignment (Sep 2026).
 
+## Links
+
+- **Live Demo:** [https://skill-bridge-puce-seven.vercel.app](https://skill-bridge-puce-seven.vercel.app)
+- **GitHub Repository:** [https://github.com/PrabhavRathi06/skill_bridge](https://github.com/PrabhavRathi06/skill_bridge)
+
 ---
 
 ## Problem

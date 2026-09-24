@@ -52,11 +52,12 @@ export async function loginUser(formData: FormData) {
     return { success: true }
   } catch (error) {
     if (error instanceof AuthError) {
+      console.error('AuthError type:', error.type, error.message)
       switch (error.type) {
         case 'CredentialsSignin':
           return { success: false, error: 'Invalid credentials.' }
         default:
-          return { success: false, error: 'Something went wrong.' }
+          return { success: false, error: `Something went wrong: ${error.type}` }
       }
     }
     throw error

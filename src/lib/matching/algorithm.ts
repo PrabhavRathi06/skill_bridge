@@ -15,6 +15,9 @@ interface RequestProfile {
   budget: number
 }
 
+// This weight distribution prioritizes skill over location.
+// A provider MUST have the right skills to do the job (40%), whereas location (20%)
+// can sometimes be bypassed (e.g., remote work or willingness to travel).
 const WEIGHTS = {
   skillMatch: 0.4,
   locationMatch: 0.2,
@@ -30,6 +33,8 @@ export function calculateMatchScore(
   const explanation: string[] = []
 
   // 1. Skill match (40%) - does provider have skills in request category?
+  // We use a progressive scoring model: just having the category gives a baseline 50%,
+  // and each specific skill in that category adds 25%, up to a max of 100%.
   const categorySkills = provider.skills.filter(
     (us) => us.skill.category.toLowerCase() === request.category.toLowerCase()
   )
@@ -41,6 +46,8 @@ export function calculateMatchScore(
   else explanation.push('No matching skills found in category')
 
   // 2. Location match (20%)
+  // Simple heuristic for location mapping. In a production app, we would use Geo-coordinates (PostGIS)
+  // to calculate the exact distance (Haversine formula), but substring matching works for MVPs.
   const locationScore = (() => {
     if (!provider.location) return 0
     const pLoc = provider.location.toLowerCase().trim()
@@ -54,17 +61,23 @@ export function calculateMatchScore(
   else explanation.push('Different location')
 
   // 3. Budget compatibility (15%) - provider's avg offer vs request budget
+  // If the provider has accepted offers, we assume their pricing is somewhat established.
+  // We give a default of 0.7 if no history exists to not penalize new providers too harshly.
   const acceptedOffers = provider.offers.filter((o) => o.status === 'ACCEPTED')
   const budgetScore = acceptedOffers.length === 0 ? 0.7 : 1
   if (budgetScore >= 0.7) explanation.push('Budget appears compatible')
 
   // 4. Availability (15%) - fewer active offers = more available
+  // We penalize providers who are currently juggling multiple pending offers (15% drop per pending offer)
+  // to ensure users are matched with responsive providers who actually have time.
   const pendingOffers = provider.offers.filter((o) => o.status === 'PENDING').length
   const availabilityScore = Math.max(0, 1 - pendingOffers * 0.15)
   if (availabilityScore >= 0.7) explanation.push('Provider appears available')
   else explanation.push('Provider may be busy with other requests')
 
   // 5. Rating (10%)
+  // Standard average calculation. New providers get a 0.6 (equivalent to 3 stars)
+  // so they aren't completely buried by the algorithm before they can get their first review.
   const reviews = provider.reviewsReceived
   const ratingScore =
     reviews.length === 0
@@ -77,6 +90,7 @@ export function calculateMatchScore(
     explanation.push('No reviews yet')
   }
 
+  // Calculate weighted total sum. Multiplying by 100 for a friendly 0-100 score format.
   const total = Math.round(
     (skillScore * WEIGHTS.skillMatch +
       locationScore * WEIGHTS.locationMatch +
@@ -99,6 +113,8 @@ export function calculateMatchScore(
   }
 }
 
+// We map over the providers, inject their calculated scores, and sort them descending.
+// This allows the UI to simply iterate over the returned array to render the highest matches first.
 export function rankProviders(
   providers: ProviderProfile[],
   request: RequestProfile

@@ -8,6 +8,8 @@ import { isValidStatusTransition } from '@/lib/utils'
 import type { ActionResult, PaginatedResult, RequestWithDetails } from '@/types'
 
 export async function createRequest(formData: FormData): Promise<ActionResult<{ id: string }>> {
+  // We need to ensure the user is actually authenticated before letting them create a request.
+  // This acts as our primary defense against unauthenticated spam.
   const session = await auth()
   if (!session?.user?.id) return { success: false, error: 'You must be logged in.' }
 
@@ -20,11 +22,14 @@ export async function createRequest(formData: FormData): Promise<ActionResult<{ 
     urgency: formData.get('urgency') || 'NORMAL',
   }
 
+  // Zod is great here for catching bad data early—like negative budgets or missing titles—
+  // before we ever touch the database.
   const parsed = createRequestSchema.safeParse(raw)
   if (!parsed.success) {
     return { success: false, error: parsed.error.errors[0]?.message ?? 'Validation failed' }
   }
 
+  // The request is bound to the currently logged-in user. This establishes ownership.
   const request = await prisma.serviceRequest.create({
     data: {
       ...parsed.data,
@@ -32,6 +37,7 @@ export async function createRequest(formData: FormData): Promise<ActionResult<{ 
     },
   })
 
+  // Purge the cache so the new request shows up immediately on the listings and dashboard.
   revalidatePath('/requests')
   revalidatePath('/dashboard')
   return { success: true, data: { id: request.id } }
@@ -58,11 +64,18 @@ export async function updateRequest(formData: FormData): Promise<ActionResult> {
 
   const { id, ...data } = parsed.data
 
+  // Fetch the existing request first. We need to check a few business rules 
+  // before we blindly apply an update.
   const existing = await prisma.serviceRequest.findUnique({ where: { id } })
   if (!existing) return { success: false, error: 'Request not found.' }
+  
+  // Crucial ownership check: Prevents malicious users from modifying requests they don't own.
   if (existing.requesterId !== session.user.id) {
     return { success: false, error: 'You are not authorized to edit this request.' }
   }
+  
+  // Once a request progresses past the initial stages (e.g., a provider is selected),
+  // we lock it down to prevent bait-and-switch scenarios on the terms.
   if (existing.status !== 'OPEN' && existing.status !== 'OFFERS_RECEIVED') {
     return { success: false, error: 'This request can no longer be edited.' }
   }
@@ -84,9 +97,14 @@ export async function cancelRequest(requestId: string): Promise<ActionResult> {
 
   const existing = await prisma.serviceRequest.findUnique({ where: { id: requestId } })
   if (!existing) return { success: false, error: 'Request not found.' }
+  
+  // Only the creator should be able to cancel their request.
   if (existing.requesterId !== session.user.id) {
     return { success: false, error: 'You are not authorized to cancel this request.' }
   }
+  
+  // Prevent cancellation if the work is already in progress or completed.
+  // We rely on a shared utility `isValidStatusTransition` to keep our state machine logic consistent.
   if (!isValidStatusTransition(existing.status, 'CANCELLED')) {
     return { success: false, error: 'This request cannot be cancelled in its current state.' }
   }
@@ -105,9 +123,11 @@ export async function cancelRequest(requestId: string): Promise<ActionResult> {
 export async function getRequests(
   rawFilters: Record<string, string | undefined>
 ): Promise<PaginatedResult<RequestWithDetails>> {
+  // Gracefully fall back to an empty filter object if the incoming data is malformed.
   const parsed = requestFiltersSchema.safeParse(rawFilters)
   const filters = parsed.success ? parsed.data : requestFiltersSchema.parse({})
 
+  // By default, we never want to show cancelled requests in the public directory.
   const where: Record<string, unknown> = { status: { not: 'CANCELLED' } }
 
   if (filters.q) {
@@ -134,6 +154,7 @@ export async function getRequests(
     budget_desc: { budget: 'desc' as const },
   }[filters.sort] ?? { createdAt: 'desc' as const }
 
+  // Run the data fetch and total count in parallel to shave off some response time.
   const [data, total] = await Promise.all([
     prisma.serviceRequest.findMany({
       where,

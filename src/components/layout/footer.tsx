@@ -36,7 +36,7 @@ export function Footer() {
               GitHub
             </Link>
             <Link
-              href="https://linkedin.com/in/prabhav-rathi"
+              href="https://www.linkedin.com/in/prabhav-rathi-b135b4158/"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600"
