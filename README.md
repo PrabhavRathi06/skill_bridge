@@ -19,9 +19,6 @@ You can log in to the live demo using any of these seeded accounts (Password for
 
 ## Screenshots
 
-<details>
-<summary>Click to view Application Screenshots</summary>
-
 ### 1. Home & Landing Page
 ![Landing Hero](./screenshots/landing-hero.png)
 ![Landing Features](./screenshots/landing-features.png)
@@ -31,20 +28,18 @@ You can log in to the live demo using any of these seeded accounts (Password for
 ![Dashboard](./screenshots/dashboard.png)
 ![User Menu](./screenshots/user-menu.png)
 
-### 2. Marketplace & Requests
+### 3. Marketplace & Requests
 ![Marketplace](./screenshots/marketplace.png)
 ![Request Details](./screenshots/request-details.png)
 
-### 3. AI Request Assistant
+### 4. AI Request Assistant
 ![AI Request Form](./screenshots/ai-request-form.png)
 ![AI Request Filled](./screenshots/ai-request-filled.png)
 ![Dashboard Updated](./screenshots/dashboard-updated.png)
 
-### 4. Offers & Acceptance Flow
+### 5. Offers & Acceptance Flow
 ![Offer Received](./screenshots/offer-received.png)
 ![Offer Accepted](./screenshots/offer-accepted.png)
-
-</details>
 
 ---
 
