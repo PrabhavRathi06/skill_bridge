@@ -3,6 +3,7 @@
 import { prisma } from '@/lib/prisma'
 import { registerSchema } from '@/lib/validation/auth'
 import { signIn, signOut } from '@/lib/auth'
+import { AuthError } from 'next-auth'
 import bcrypt from 'bcryptjs'
 import type { ActionResult } from '@/types'
 
@@ -40,12 +41,26 @@ export async function registerUser(
   return { success: true, data: { email } }
 }
 
+
 export async function loginUser(formData: FormData) {
-  await signIn('credentials', {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-    redirectTo: '/dashboard',
-  })
+  try {
+    await signIn('credentials', {
+      email: formData.get('email') as string,
+      password: formData.get('password') as string,
+      redirectTo: '/dashboard',
+    })
+    return { success: true }
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case 'CredentialsSignin':
+          return { success: false, error: 'Invalid credentials.' }
+        default:
+          return { success: false, error: 'Something went wrong.' }
+      }
+    }
+    throw error
+  }
 }
 
 export async function logoutUser() {

@@ -1,11 +1,29 @@
+'use client'
+
 import Link from 'next/link'
+import { useState, useTransition } from 'react'
+import { toast } from 'sonner'
 import { loginUser } from '@/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardFooter } from '@/components/ui/card'
 
 export default function LoginPage() {
+  const [isPending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+
+  function handleSubmit(formData: FormData) {
+    setError(null)
+    startTransition(async () => {
+      const result = await loginUser(formData)
+      if (result && !result.success) {
+        setError(result.error ?? 'Login failed.')
+        toast.error(result.error ?? 'Login failed.')
+      }
+    })
+  }
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm">
@@ -18,8 +36,11 @@ export default function LoginPage() {
         </div>
 
         <Card>
-          <form action={loginUser}>
+          <form action={handleSubmit}>
             <CardContent className="space-y-4 pt-6">
+              {error && (
+                <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -44,8 +65,8 @@ export default function LoginPage() {
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-3">
-              <Button type="submit" className="w-full">
-                Sign In
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? 'Signing in...' : 'Sign In'}
               </Button>
               <p className="text-center text-sm text-gray-500">
                 Don&apos;t have an account?{' '}
