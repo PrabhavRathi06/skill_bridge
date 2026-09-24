@@ -8,4 +8,4 @@ export const groq = createGroq({
   apiKey: process.env.GROQ_API_KEY,
 })
 
-export const AI_MODEL = 'llama-3.1-8b-instant'
+export const AI_MODEL = 'openai/gpt-oss-120b'
